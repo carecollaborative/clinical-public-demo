@@ -1,0 +1,194 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 51, 51, 51;
+  --background-start-rgb: 248, 250, 252;
+  --background-end-rgb: 255, 255, 255;
+  --primary: 79, 70, 229; /* Indigo */
+  --primary-light: 199, 210, 254; /* Light Indigo */
+  --secondary: 45, 212, 191; /* Teal */
+  --secondary-light: 153, 246, 228; /* Light Teal */
+  --accent: 147, 51, 234; /* Purple */
+  --neutral: 243, 244, 246;
+  --radius: 0.5rem;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
+
+  body {
+    @apply bg-gradient-to-b from-slate-50 to-white text-slate-900;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* Add overflow handling for the root element */
+  overflow-x: hidden;
+}
+
+/* Add these new rules for scroll handling */
+body {
+  overflow-y: auto; /* Allow vertical scrolling by default */
+}
+
+/* Fix for root containers to properly handle height */
+#__next, [data-lk-root], main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0; /* Critical for proper flexbox scrolling */
+}
+
+/* Make flexbox containers properly handle overflow */
+.flex-col, .flex {
+  min-height: 0;
+}
+
+/* Ensure scrollable containers work properly */
+.overflow-auto, .overflow-y-auto {
+  overflow: auto !important;
+}
+
+/* Fix for LiveKit containers */
+[data-lk-root] {
+  height: auto !important; /* Override any fixed height settings */
+  min-height: 0 !important;
+}
+
+/* Fix for content being cut off at the bottom */
+.h-screen {
+  height: 100vh;
+  max-height: 100vh;
+  min-height: 0;
+}
+
+/* Animations and transitions */
+.animate-fade {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Enhanced button hover effects */
+.btn-hover-effect {
+  transition: all 0.3s ease;
+}
+
+.btn-hover-effect:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced audio visualizer */
+.lk-audio-bar-visualizer {
+  gap: 8px !important;
+
+  & > .lk-audio-bar {
+    width: 48px !important;
+    min-height: 48px !important;
+    background-color: rgba(79, 70, 229, 0.05) !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease-in-out;
+  }
+
+  &[data-lk-va-state='speaking'] > .lk-audio-bar,
+  & > .lk-audio-bar.lk-highlighted,
+  & > [data-lk-highlighted='true'] {
+    @apply bg-indigo-500 !important;
+    box-shadow: 0 0 15px rgba(79, 70, 229, 0.3) !important;
+  }
+
+  & > [data-lk-highlighted='false'] {
+    @apply bg-indigo-100 !important;
+  }
+}
+
+/* Healthcare Theme Specific Styles */
+.health-gradient {
+  @apply bg-gradient-to-r from-indigo-500 to-teal-400;
+}
+
+.pill-badge {
+  @apply px-3 py-1.5 rounded-full text-xs font-medium;
+}
+
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+}
+
+/* Improved editor styles */
+.tiptap p.is-editor-empty:first-child::before {
+  color: #adb5bd;
+  font-weight: 300;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Improved transcript message styles */
+.message-bubble {
+  transition: all 0.2s ease-in-out;
+  max-width: 90%;
+}
+
+.message-bubble:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.patient-message {
+  @apply bg-indigo-50 text-slate-700 border border-indigo-100;
+}
+
+.user-message {
+  @apply bg-teal-50 text-slate-700 border border-teal-100 ml-auto;
+}
+
+/* Font styles */
+@font-face {
+  font-family: 'Commit Mono';
+  src: url('/fonts/CommitMono-400-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Commit Mono';
+  src: url('/fonts/CommitMono-700-Regular.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+}

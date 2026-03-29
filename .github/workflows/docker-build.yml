@@ -1,0 +1,111 @@
+name: Build and Push Docker Image
+
+on:
+  # Trigger on pushes to any branch except dependabot
+  push:
+    branches:
+      - '**'
+      - '!dependabot/**'  # Using negation pattern instead of branches-ignore
+  # Also trigger on pull requests to main
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  # Image name for the video bridge project
+  IMAGE_NAME: wirtual-video-bridge
+  DOCKERHUB_USERNAME: onchainengineer
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image
+    # Skip the job for tags
+    if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch all history for better commit handling
+          fetch-depth: 0
+
+      # Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Generate the tag from branch name and commit ID
+      - name: Generate Docker image tag
+        id: generate-tag
+        run: |
+          # Extract branch name
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          
+          # If this is a PR, use the PR head branch name
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BRANCH_NAME=${{ github.head_ref }}
+          fi
+          
+          # Get short commit hash
+          SHORT_COMMIT=$(git rev-parse --short HEAD)
+          
+          # Create tag by sanitizing branch name and adding commit ID
+          # Place the dash at the beginning of the character class to avoid range interpretation
+          TAG=$(echo ${BRANCH_NAME} | sed 's/\//-/g' | sed 's/[^-a-zA-Z0-9.]/-/g')-${SHORT_COMMIT}
+          
+          # Set output for use in later steps
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "branch_name=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+          
+          # Print for verification
+          echo "Branch: ${BRANCH_NAME}"
+          echo "Generated Docker image tag: ${TAG}"
+
+      # Login to Docker Hub (skip for pull requests)
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        if: github.event_name != 'pull_request'
+
+      # Cache Docker layers
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      # Build and push the Docker image
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.generate-tag.outputs.tag }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          platforms: linux/amd64
+          build-args: |
+            LIVEKIT_URL=${{ secrets.LIVEKIT_URL || '' }}
+            LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY || '' }}
+            LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET || '' }}
+            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY || '' }}
+            DEEPGRAM_API_KEY=${{ secrets.DEEPGRAM_API_KEY || '' }}
+            CARTESIA_API_KEY=${{ secrets.CARTESIA_API_KEY || '' }}
+
+      # Move cache to avoid indefinite growth
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      # Output the final image name that was created
+      - name: Display created image
+        run: |
+          echo "Branch: ${{ steps.generate-tag.outputs.branch_name }}"
+          echo "Docker image built and pushed:"
+          echo "docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.generate-tag.outputs.tag }}"
+        if: github.event_name != 'pull_request'
