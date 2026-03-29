@@ -35,6 +35,8 @@ export async function POST(request: Request) {
       vadThreshold,
       vadSilenceDurationMs,
       vadPrefixPaddingMs,
+      tavusReplicaId,
+      tavusPersonaId,
     },
   } = playgroundState;
 
@@ -61,6 +63,9 @@ export async function POST(request: Request) {
         silence_duration_ms: vadSilenceDurationMs,
         prefix_padding_ms: vadPrefixPaddingMs,
       }),
+      tavus_replica_id: tavusReplicaId,
+      tavus_persona_id: tavusPersonaId,
+      tavus_api_key: process.env.TAVUS_API_KEY || null,
     }),
   });
   at.addGrant({

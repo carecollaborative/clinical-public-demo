@@ -36,6 +36,8 @@ export const ConfigurationFormSchema = z.object({
   vadThreshold: z.number().min(0).max(1),
   vadSilenceDurationMs: z.number().min(0).max(5000),
   vadPrefixPaddingMs: z.number().min(0).max(5000),
+  tavusReplicaId: z.string().nullable(),
+  tavusPersonaId: z.string().nullable(),
 });
 
 export interface ConfigurationFormFieldProps {

@@ -16,6 +16,8 @@ export interface SessionConfig {
   vadThreshold: number;
   vadSilenceDurationMs: number;
   vadPrefixPaddingMs: number;
+  tavusReplicaId: string | null;
+  tavusPersonaId: string | null;
 }
 
 export interface PlaygroundState {
@@ -37,6 +39,8 @@ export const defaultSessionConfig: SessionConfig = {
   vadThreshold: 0.5,
   vadSilenceDurationMs: 200,
   vadPrefixPaddingMs: 300,
+  tavusReplicaId: null,
+  tavusPersonaId: null,
 };
 
 // Define the initial state
